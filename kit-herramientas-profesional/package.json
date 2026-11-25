@@ -1,0 +1,20 @@
+{
+  "name": "kit-herramientas-profesional",
+  "version": "1.0.0",
+  "description": "Kit de herramientas para ingeniería informática: auditoría de secretos, documentación de APIs, generador de README y un agente de Telegram.",
+  "license": "MIT",
+  "author": "Luis Angel Mesa",
+  "engines": { "node": ">=20" },
+  "bin": {
+    "secret-audit": "tools/secret-audit/index.js",
+    "api-docs": "tools/api-docs/index.js",
+    "readme-gen": "tools/readme-gen/index.js"
+  },
+  "scripts": {
+    "audit": "node tools/secret-audit/index.js",
+    "api": "node tools/api-docs/index.js",
+    "readme": "node tools/readme-gen/index.js",
+    "agent": "node --env-file=agent/.env agent/bot.js",
+    "test": "node --test \"test/*.test.js\""
+  }
+}

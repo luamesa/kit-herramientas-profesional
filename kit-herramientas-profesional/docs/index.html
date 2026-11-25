@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kit de Herramientas Profesional</title>
+  <meta name="description" content="Tres herramientas, un agente de Telegram y tres skills para revisar, documentar y publicar proyectos de software sin filtrar secretos.">
+  <meta property="og:title" content="Kit de Herramientas Profesional">
+  <meta property="og:description" content="Revisa tu proyecto antes de que lo vea el mundo: auditoría de secretos, documentación de API y README generado.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #f5f6f8;
+      --surface: #ffffff;
+      --ink: #101828;
+      --ink-soft: #475467;
+      --line: #d9dde5;
+      --marker: #ffe45c;
+      --alert: #b42318;
+      --alert-bg: #fdecea;
+      --warn: #8a5a00;
+      --warn-bg: #fff4d6;
+      --ok: #17694a;
+      --link: #1f3fc4;
+      --code-bg: #0f1624;
+      --code-ink: #dbe2f0;
+      --code-dim: #7d8aa5;
+      --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+      --body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 400 1.0625rem/1.6 var(--body);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--link); text-underline-offset: 3px; }
+    a:focus-visible, button:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--ink);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+    h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
+    p { margin: 0; }
+    code, pre { font-family: var(--mono); }
+
+    .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+    .block { padding: 72px 0; }
+    .block + .block { border-top: 1px solid var(--line); }
+    .block h2 { font-size: clamp(1.75rem, 3.4vw, 2.5rem); font-weight: 700; max-width: 22ch; }
+    .block .lede { color: var(--ink-soft); max-width: 62ch; margin-top: 14px; }
+
+    /* Barra superior */
+    .top { padding: 18px 0; }
+    .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .brand { font: 700 1.05rem var(--display); color: var(--ink); text-decoration: none; }
+    .top nav { display: flex; gap: 22px; flex-wrap: wrap; font-size: 0.95rem; }
+    .top nav a { color: var(--ink-soft); text-decoration: none; }
+    .top nav a:hover { color: var(--ink); text-decoration: underline; }
+
+    /* Hero */
+    .hero { padding: 40px 0 80px; }
+    .hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); gap: 56px; align-items: center; }
+    .hero h1 { font-size: clamp(2.5rem, 5.6vw, 4.25rem); font-weight: 800; }
+    .hero h1 mark { background: linear-gradient(transparent 58%, var(--marker) 58% 92%, transparent 92%); color: inherit; padding: 0 2px; }
+    .hero p.lede { margin-top: 22px; color: var(--ink-soft); max-width: 46ch; font-size: 1.15rem; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+    .btn {
+      display: inline-flex; align-items: center; min-height: 46px; padding: 0 20px;
+      border-radius: 8px; font: 600 1rem var(--body); text-decoration: none; cursor: pointer;
+      border: 2px solid var(--ink); background: var(--ink); color: #fff;
+    }
+    .btn:hover { background: #1d2a44; }
+    .btn.ghost { background: transparent; color: var(--ink); }
+    .btn.ghost:hover { background: #e8ebf1; }
+
+    /* Panel de revisión de código */
+    .review { background: var(--code-bg); color: var(--code-ink); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 0 rgba(16,24,40,.06), 0 18px 40px -22px rgba(16,24,40,.5); }
+    .review .file { padding: 12px 16px; font: 600 0.8rem var(--mono); color: var(--code-dim); border-bottom: 1px solid #222d44; overflow-wrap: anywhere; }
+    .review pre { margin: 0; padding: 4px 0; font-size: 0.78rem; line-height: 1.75; overflow-x: auto; white-space: normal; }
+    .review .ln { display: grid; grid-template-columns: 44px 1fr; min-width: max-content; white-space: pre; }
+    .review .ln > span:first-child { text-align: right; padding-right: 14px; color: var(--code-dim); user-select: none; }
+    .review .ln.bad { background: rgba(220, 70, 60, .18); box-shadow: inset 3px 0 0 #ff6b5e; }
+    .review .ln.warn { background: rgba(255, 196, 61, .14); box-shadow: inset 3px 0 0 #ffc43d; }
+    .note { margin: 0 0 0 44px; padding: 12px 16px; background: var(--surface); color: var(--ink); font: 400 0.9rem/1.5 var(--body); border-left: 3px solid var(--alert); }
+    .note.warn { border-left-color: #c98a00; }
+    .note b { display: block; font-weight: 600; margin-bottom: 2px; }
+    .note .sev { font-weight: 600; color: var(--alert); }
+    .note.warn .sev { color: var(--warn); }
+    .note { animation: stamp .5s cubic-bezier(.2,.9,.3,1.2) .7s both; transform-origin: top left; }
+    .note.late { animation-delay: 1.1s; }
+    @keyframes stamp { from { opacity: 0; transform: scale(.94) translateY(-4px); } to { opacity: 1; transform: none; } }
+
+    /* Herramientas: filas, no tarjetas */
+    .rows { margin-top: 36px; border-top: 1px solid var(--ink); }
+    .row { display: grid; grid-template-columns: 220px minmax(0, 1fr) minmax(0, 1.1fr); gap: 12px 32px; padding: 26px 0; border-bottom: 1px solid var(--line); align-items: start; }
+    .row h3 { font-size: 1.3rem; font-weight: 700; }
+    .row h3 a { color: inherit; text-decoration: none; }
+    .row h3 a:hover { text-decoration: underline; }
+    .row p { color: var(--ink-soft); }
+    .row p + p { margin-top: 8px; }
+    .cmd { background: var(--code-bg); color: var(--code-ink); padding: 12px 14px; border-radius: 8px; font-size: 0.82rem; overflow-x: auto; white-space: pre; margin: 0; }
+    .cmd .dim { color: var(--code-dim); }
+
+    /* Resultado sobre un proyecto real */
+    .findings { margin-top: 32px; width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .findings th, .findings td { text-align: left; padding: 14px 16px; vertical-align: top; border-bottom: 1px solid var(--line); font-size: 0.97rem; }
+    .findings th { font-weight: 600; background: #eceff4; }
+    .findings tr:last-child td { border-bottom: 0; }
+    .findings code { font-size: 0.85rem; overflow-wrap: anywhere; }
+    .chip { display: inline-block; padding: 2px 10px; border-radius: 99px; font-weight: 600; font-size: 0.85rem; }
+    .chip.alta { background: var(--alert-bg); color: var(--alert); }
+    .chip.media { background: var(--warn-bg); color: var(--warn); }
+    .table-scroll { overflow-x: auto; }
+    .findings { min-width: 640px; }
+
+    /* Agente: conversación */
+    .agent { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 420px); gap: 56px; align-items: start; }
+    .agent ul { margin: 22px 0 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+    .agent li { padding-left: 18px; position: relative; color: var(--ink-soft); }
+    .agent li::before { content: ""; position: absolute; left: 0; top: .7em; width: 8px; height: 2px; background: var(--ink); }
+    .agent li code { color: var(--ink); background: #e8ebf1; padding: 1px 6px; border-radius: 4px; font-size: .88rem; }
+    .chat { background: #e6ebf2; border-radius: 14px; padding: 18px; display: grid; gap: 10px; font-size: 0.95rem; }
+    .msg { max-width: 88%; padding: 10px 14px; border-radius: 14px; line-height: 1.5; }
+    .msg.me { justify-self: end; background: #2b5fd9; color: #fff; border-bottom-right-radius: 4px; }
+    .msg.bot { justify-self: start; background: #fff; border-bottom-left-radius: 4px; }
+    .msg.bot .sev { color: var(--alert); font-weight: 600; }
+
+    /* Skills y documentación */
+    .pair { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin-top: 36px; }
+    .pair > div { border-top: 3px solid var(--ink); padding-top: 16px; }
+    .pair h3 { font-size: 1.2rem; font-weight: 700; }
+    .pair p { margin-top: 8px; color: var(--ink-soft); }
+    .pair a { display: inline-block; margin-top: 10px; font-weight: 500; }
+    .links { margin: 32px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; }
+    .links li { border-bottom: 1px solid var(--line); }
+    .links a { display: flex; justify-content: space-between; gap: 16px; padding: 16px 0; color: var(--ink); text-decoration: none; font-weight: 500; }
+    .links a:hover { color: var(--link); }
+    .links a span { color: var(--ink-soft); font-weight: 400; }
+
+    /* Reseñas */
+    .reviews-box { margin-top: 32px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 24px; }
+    .reviews-box .fallback p + p { margin-top: 10px; }
+    .reviews-box .fallback { color: var(--ink-soft); }
+    .share { margin-top: 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    #share-status { color: var(--ok); font-weight: 500; }
+
+    footer { padding: 36px 0 56px; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 0.95rem; }
+    footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    footer a { color: var(--ink); }
+
+    @media (max-width: 900px) {
+      .hero .wrap, .agent { grid-template-columns: 1fr; gap: 36px; }
+      .row { grid-template-columns: 1fr; }
+      .pair { grid-template-columns: 1fr; }
+      .links { grid-template-columns: 1fr; }
+      .block { padding: 56px 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .note { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#inicio">Kit de Herramientas Profesional</a>
+      <nav aria-label="Secciones">
+        <a href="#herramientas">Herramientas</a>
+        <a href="#agente">Agente</a>
+        <a href="#skills">Skills</a>
+        <a href="#documentacion">Documentación</a>
+        <a href="#resenas">Reseñas</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="inicio">
+    <section class="hero">
+      <div class="wrap">
+        <div>
+          <h1>Revisa tu proyecto <mark>antes</mark> de que lo vea el mundo</h1>
+          <p class="lede">Tres herramientas, un agente de Telegram y tres skills para encontrar secretos expuestos, documentar tu API y generar el README de un proyecto de software.</p>
+          <div class="actions">
+            <a class="btn" href="https://github.com/luamesa/kit-herramientas-profesional">Ver el repositorio</a>
+            <a class="btn ghost" href="#herramientas">Ver las herramientas</a>
+          </div>
+        </div>
+
+        <figure class="review" style="margin:0" aria-label="Ejemplo de un hallazgo de secret-audit en un proyecto real">
+          <div class="file">backend/middlewares/authMiddleware.js</div>
+          <pre><code><span class="ln"><span>6</span><span>  if (!token) return res.status(401).json({ ... });</span></span>
+<span class="ln"><span>7</span><span> </span></span>
+<span class="ln bad"><span>8</span><span>  console.log("JWT SECRET MIDDLEWARE:", process.env.JWT_SECRET);</span></span></code></pre>
+          <div class="note" role="note"><b><span class="sev">Alta</span> · Se imprime un secreto en los logs</b>Borra este log: los registros del servidor suelen terminar en servicios de terceros.</div>
+          <pre><code><span class="ln warn"><span>9</span><span>  console.log("TOKEN RECIBIDO:", token);</span></span></code></pre>
+          <div class="note warn late" role="note"><b><span class="sev">Media</span> · Se imprime un token de sesión</b>Un token en los registros permite suplantar al usuario.</div>
+          <pre><code><span class="ln"><span>10</span><span> </span></span>
+<span class="ln"><span>11</span><span>  try {</span></span></code></pre>
+        </figure>
+      </div>
+    </section>
+
+    <section class="block" id="herramientas">
+      <div class="wrap">
+        <h2>Tres herramientas que se ejecutan en un comando</h2>
+        <p class="lede">Funcionan con Node.js 20 o superior y sin instalar dependencias. Reciben la carpeta de un proyecto y escriben el resultado en la terminal.</p>
+
+        <div class="rows">
+          <article class="row">
+            <h3><a href="https://github.com/luamesa/kit-herramientas-profesional/tree/main/tools/secret-audit">secret-audit</a></h3>
+            <div>
+              <p>Busca un <code>.env</code> subido a Git, claves y contraseñas en el código y logs que imprimen tokens.</p>
+              <p>Nunca muestra el valor completo de un secreto.</p>
+            </div>
+            <pre class="cmd"><span class="dim">$</span> npm run audit -- ../mi-proyecto</pre>
+          </article>
+          <article class="row">
+            <h3><a href="https://github.com/luamesa/kit-herramientas-profesional/tree/main/tools/api-docs">api-docs</a></h3>
+            <div>
+              <p>Lee un backend Express y arma la tabla de endpoints: método, ruta, si exige autenticación y qué campos recibe.</p>
+            </div>
+            <pre class="cmd"><span class="dim">$</span> npm run api -- ../mi-proyecto/backend</pre>
+          </article>
+          <article class="row">
+            <h3><a href="https://github.com/luamesa/kit-herramientas-profesional/tree/main/tools/readme-gen">readme-gen</a></h3>
+            <div>
+              <p>Genera un README en español con tecnologías, estructura, instalación, variables de entorno y API.</p>
+            </div>
+            <pre class="cmd"><span class="dim">$</span> npm run readme -- ../mi-proyecto</pre>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="resultado">
+      <div class="wrap">
+        <h2>Lo que encontró en un proyecto real</h2>
+        <p class="lede">Se ejecutó sobre <a href="https://github.com/luamesa/FINALDW">ReviewHub (FINALDW)</a>, una plataforma Full Stack de reseñas con Angular, Express y MongoDB. El reporte completo está en <a href="https://github.com/luamesa/kit-herramientas-profesional/blob/main/examples/finaldw-auditoria.md">examples/</a>.</p>
+        <div class="table-scroll">
+          <table class="findings">
+            <thead><tr><th scope="col">Severidad</th><th scope="col">Hallazgo</th><th scope="col">Dónde</th></tr></thead>
+            <tbody>
+              <tr><td><span class="chip alta">Alta</span></td><td>Archivo <code>.env</code> subido a Git con la URI de MongoDB y el secreto JWT</td><td><code>backend/.env</code></td></tr>
+              <tr><td><span class="chip alta">Alta</span></td><td>Se imprime <code>JWT_SECRET</code> en los logs</td><td><code>authMiddleware.js:8</code></td></tr>
+              <tr><td><span class="chip media">Media</span></td><td>Se imprime el token de sesión de cada petición</td><td><code>authMiddleware.js:9</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="lede">La herramienta de API documentó los 7 endpoints del proyecto y marcó los 3 que exigen autenticación.</p>
+      </div>
+    </section>
+
+    <section class="block" id="agente">
+      <div class="wrap agent">
+        <div>
+          <h2>Un agente que hace el trabajo desde Telegram</h2>
+          <p class="lede">Escríbele la dirección de un repositorio público de GitHub y te responde con el reporte. También te avisa cuando llega una reseña nueva a ReviewHub.</p>
+          <ul>
+            <li><code>/auditar</code> busca secretos expuestos en el repo.</li>
+            <li><code>/api</code> documenta los endpoints.</li>
+            <li><code>/readme</code> genera un README.</li>
+            <li><code>/resenas</code> resume las reseñas: cantidad, promedio y las más recientes.</li>
+          </ul>
+          <p class="lede">Solo responde a los chats que tú autorices y solo acepta direcciones de GitHub. <a href="https://github.com/luamesa/kit-herramientas-profesional/blob/main/docs/agente.md">Cómo ponerlo en marcha</a>.</p>
+        </div>
+        <div class="chat" role="img" aria-label="Conversación de ejemplo con el agente: el usuario envía /auditar y el agente responde con tres hallazgos">
+          <div class="msg me">/auditar https://github.com/luamesa/FINALDW</div>
+          <div class="msg bot">Auditoría de secretos: finaldw<br>Hallazgos: 3 (2 altos, 1 medio)</div>
+          <div class="msg bot"><span class="sev">Alta</span> · Archivo .env subido a Git<br><code>backend/.env</code></div>
+          <div class="msg bot"><span class="sev">Alta</span> · Se imprime un secreto en los logs<br><code>authMiddleware.js:8</code></div>
+          <div class="msg me">/resenas</div>
+          <div class="msg bot">Todavía no hay reseñas.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="skills">
+      <div class="wrap">
+        <h2>Tres skills para que la IA trabaje a tu manera</h2>
+        <p class="lede">Cada skill es una carpeta con un <code>SKILL.md</code> que le explica a Claude cómo hacer una tarea. Se conectan con las herramientas: la auditoría encuentra el problema, la revisión lo ordena y el commit lo corrige.</p>
+        <div class="pair">
+          <div>
+            <h3>Revisión de código</h3>
+            <p>Entrega los hallazgos por gravedad, con archivo, línea y cómo arreglarlos.</p>
+            <a href="https://github.com/luamesa/kit-herramientas-profesional/blob/main/skills/revision-de-codigo/SKILL.md">Leer la skill</a>
+          </div>
+          <div>
+            <h3>Documentación técnica</h3>
+            <p>Escribe READMEs y guías que otra persona pueda seguir en diez minutos.</p>
+            <a href="https://github.com/luamesa/kit-herramientas-profesional/blob/main/skills/documentacion-tecnica/SKILL.md">Leer la skill</a>
+          </div>
+          <div>
+            <h3>Mensajes de commit</h3>
+            <p>Redacta commits con Conventional Commits a partir del diff.</p>
+            <a href="https://github.com/luamesa/kit-herramientas-profesional/blob/main/skills/mensajes-de-commit/SKILL.md">Leer la skill</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="documentacion">
+      <div class="wrap">
+        <h2>Documentación</h2>
+        <ul class="links">
+          <li><a href="https://github.com/luamesa/kit-herramientas-profesional#readme">README del repositorio <span>Inicio rápido</span></a></li>
+          <li><a href="https://github.com/luamesa/kit-herramientas-profesional/blob/main/docs/herramientas.md">Herramientas <span>Uso y límites</span></a></li>
+          <li><a href="https://github.com/luamesa/kit-herramientas-profesional/blob/main/docs/agente.md">Agente de Telegram <span>Puesta en marcha</span></a></li>
+          <li><a href="https://github.com/luamesa/kit-herramientas-profesional/blob/main/docs/skills.md">Skills <span>Cómo usarlas</span></a></li>
+          <li><a href="https://github.com/luamesa/kit-herramientas-profesional/tree/main/examples">Ejemplos <span>Salidas sobre FINALDW</span></a></li>
+          <li><a href="https://github.com/luamesa/kit-herramientas-profesional/blob/main/docs/landing.md">Esta landing <span>Publicar y activar reseñas</span></a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="block" id="resenas">
+      <div class="wrap">
+        <h2>Deja tu reseña</h2>
+        <p class="lede">¿Usaste el kit o lo revisaste? Cuéntanos qué te sirvió y qué mejorarías. Las reseñas se guardan en GitHub Discussions y necesitas una cuenta de GitHub para escribir.</p>
+
+        <div class="reviews-box">
+          <div id="giscus-slot"></div>
+          <div class="fallback" id="reviews-fallback" hidden>
+            <p>El cuadro de comentarios se activa al configurar giscus en este repositorio.</p>
+            <p><a href="https://github.com/luamesa/kit-herramientas-profesional/discussions">Escribir una reseña en GitHub Discussions</a></p>
+          </div>
+        </div>
+
+        <div class="share">
+          <button class="btn ghost" id="share-btn" type="button">Compartir esta página</button>
+          <span id="share-status" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p>Hecho por Luis Angel Mesa, estudiante de Ingeniería Informática en la Universidad de La Salle.</p>
+      <p><a href="https://github.com/luamesa">GitHub</a> · <a href="https://luamesa.github.io/portfolio-luis-mesa/">Portafolio</a> · <a href="https://www.linkedin.com/in/luis-angel-mesa-cuervo/">LinkedIn</a></p>
+    </div>
+  </footer>
+
+  <script>
+    // Reemplaza estos dos valores con los que entrega https://giscus.app (ver docs/landing.md).
+    var GISCUS_CONFIG = {
+      repo: "luamesa/kit-herramientas-profesional",
+      repoId: "REEMPLAZA_REPO_ID",
+      category: "Announcements",
+      categoryId: "REEMPLAZA_CATEGORY_ID"
+    };
+
+    (function loadReviews() {
+      var configured = GISCUS_CONFIG.repoId.indexOf("REEMPLAZA") !== 0 && GISCUS_CONFIG.categoryId.indexOf("REEMPLAZA") !== 0;
+      if (!configured) {
+        document.getElementById("reviews-fallback").hidden = false;
+        return;
+      }
+      var s = document.createElement("script");
+      s.src = "https://giscus.app/client.js";
+      s.async = true;
+      s.crossOrigin = "anonymous";
+      var attrs = {
+        "data-repo": GISCUS_CONFIG.repo,
+        "data-repo-id": GISCUS_CONFIG.repoId,
+        "data-category": GISCUS_CONFIG.category,
+        "data-category-id": GISCUS_CONFIG.categoryId,
+        "data-mapping": "pathname",
+        "data-reactions-enabled": "1",
+        "data-input-position": "top",
+        "data-theme": "light",
+        "data-lang": "es"
+      };
+      Object.keys(attrs).forEach(function (k) { s.setAttribute(k, attrs[k]); });
+      document.getElementById("giscus-slot").appendChild(s);
+    })();
+
+    document.getElementById("share-btn").addEventListener("click", function () {
+      var status = document.getElementById("share-status");
+      var data = { title: document.title, url: location.href };
+      if (navigator.share) {
+        navigator.share(data).catch(function () {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(location.href).then(function () {
+          status.textContent = "Enlace copiado";
+          setTimeout(function () { status.textContent = ""; }, 3000);
+        }, function () { status.textContent = "No se pudo copiar. Copia el enlace desde la barra del navegador."; });
+      } else {
+        status.textContent = "Copia el enlace desde la barra del navegador.";
+      }
+    });
+  </script>
+</body>
+</html>
